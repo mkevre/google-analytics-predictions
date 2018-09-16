@@ -293,9 +293,10 @@ aggregated <- aggregated %>%
             campaign_id = median(campaign_id, na.rm = T),
             num_visits = sum(num_visits, na.rm = T),
             transactionRevenueRaw = sum(transactionRevenue, na.rm = T),
-            transactionRevenue = log(transactionRevenue)
+            transactionRevenue = ifelse(transactionRevenueRaw == 0, 0, log(transactionRevenueRaw))
             ) %>%
   select(-transactionRevenueRaw)
+
 
 
 
