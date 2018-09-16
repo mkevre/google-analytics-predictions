@@ -321,6 +321,9 @@ clean <- function(data) {
 
 
 # Implement LightGBM
+library(lightgbm)
+
+aggregated <- clean(train)
 
 # Split into test/train
 set.seed(385)
@@ -342,10 +345,10 @@ valids <- list(test = dtest)
 params <- list(objective = 'regression', metric = 'rmse')
 model <- lgb.train(params,
                    dtrain,
-                   10000,
+                   1000000,
                    valids,
-                   learning_rate = 0.001,
-                   early_stopping_rounds = 1000)
+                   learning_rate = 0.0001,
+                   early_stopping_rounds = 50000)
 
 # Predict on the validation set
 predicted <- predict(model, valid_inputs)
@@ -360,4 +363,4 @@ submission <- data.frame(fullVisitorId = test_clean$fullVisitorId,
                          PredictedLogRevenue = submit_predicted)
 
 
-write.csv(submission, 'submission2.csv', row.names = FALSE)
+write.csv(submission, 'submission4.csv', row.names = FALSE)
