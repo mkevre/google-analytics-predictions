@@ -2,7 +2,7 @@ train_path = 'train.csv'
 test_path = 'test.csv'
 
 train <- read.csv(train_path)
-test <- read.csv(test_path)
+test <- read.csv(test_path, colClasses=c(fullVisitorId = 'character'))
 
 library(dplyr)
 
@@ -342,21 +342,22 @@ valids <- list(test = dtest)
 params <- list(objective = 'regression', metric = 'rmse')
 model <- lgb.train(params,
                    dtrain,
-                   1000,
+                   10000,
                    valids,
-                   learning_rate = 0.01,
-                   early_stopping_rounds = 100)
+                   learning_rate = 0.001,
+                   early_stopping_rounds = 1000)
 
 # Predict on the validation set
 predicted <- predict(model, valid_inputs)
 
-test_clean <- clean(test)
+#test_clean <- clean(test)
 
 sumission_inputs <- as.matrix(test_clean %>% select(-c(fullVisitorId,transactionRevenue)))
 
-submit_predicted <- predict(model, valid_inputs)
+submit_predicted <- predict(model, sumission_inputs)
 
 submission <- data.frame(fullVisitorId = test_clean$fullVisitorId, 
                          PredictedLogRevenue = submit_predicted)
 
-write.csv(submission, 'submission.csv', row.names = FALSE)
+
+write.csv(submission, 'submission2.csv', row.names = FALSE)
