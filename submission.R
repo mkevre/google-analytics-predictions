@@ -4,7 +4,6 @@ train <- read.csv(train_path)
 
 library(dplyr)
 
-str(train)
 
 train_tbl <- tbl_df(train)
 # There is no primary key. Let's create one.
@@ -43,7 +42,7 @@ rm(temp)
 # device
 library(jsonlite)
 
-device_decoded = paste('[', paste(train$device, collapse = ','), ']') %>% fromJSON(flatten = T)
+device_decoded <- paste('[', paste(train$device, collapse = ','), ']') %>% fromJSON(flatten = T)
 device_decoded$browser <- as.factor(device_decoded$browser)
 device_decoded$operatingSystem <- as.factor(device_decoded$operatingSystem) 
 device_decoded$isMobile <- as.integer(device_decoded$isMobile) # Originally TRUE/FALSE
@@ -94,7 +93,7 @@ clean_tbl %>% inner_join(temp)
 rm(temp)
 
 # geoNetwork
-geo_decoded = paste('[', paste(train$geoNetwork, collapse = ','), ']') %>% fromJSON(flatten = T)
+geo_decoded <- paste('[', paste(train$geoNetwork, collapse = ','), ']') %>% fromJSON(flatten = T)
 geo_decoded <- tbl_df(geo_decoded)
 # Create a new feature for top level domain
 geo_decoded$parsed_domain <- gsub('^.*\\.','', geo_decoded$networkDomain)
@@ -136,3 +135,198 @@ clean_tbl <- clean_tbl %>% inner_join(temp2)
 rm(temp, temp2)
 
 train_tbl %>% group_by(as.character(fullVisitorId)) %>% summarize(count = n()) %>% arrange(desc(count))
+
+# Social engagement type is not useful, only one value
+
+# totals
+totals_decoded <- paste('[', paste(train$totals, collapse = ','), ']') %>% fromJSON(flatten = T)
+totals_decoded <- tbl_df(totals_decoded)
+clean_tbl <- clean_tbl %>% cbind(totals_decoded)
+clean_tbl$visits <- as.numeric(clean_tbl$visits)
+clean_tbl$hits <- as.numeric(clean_tbl$hits)
+clean_tbl$pageviews <- as.numeric(clean_tbl$pageviews)
+clean_tbl$bounces <- as.numeric(clean_tbl$bounces)
+clean_tbl$newVisits <- as.numeric(clean_tbl$newVisits)
+clean_tbl$transactionRevenue <- as.numeric(clean_tbl$transactionRevenue)
+
+# Traffic Source
+traffic_decoded <- paste('[', paste(train$trafficSource, collapse = ','), ']') %>% fromJSON(flatten = T)
+traffic_decoded <- tbl_df(traffic_decoded)
+
+traffic_decoded <- traffic_decoded %>% 
+  mutate(isTrueDirect = ifelse(is.na(isTrueDirect), 0, 1))
+
+# adwordsClickInfo.criteriaParameters is useless
+
+traffic_decoded$adwords_page <- traffic_decoded$adwordsClickInfo.page
+traffic_decoded <- traffic_decoded %>%
+  mutate(traffic_rhs = ifelse(traffic_decoded$adwordsClickInfo.slot == 'RHS', 1, 0),
+         traffic_top = ifelse(traffic_decoded$adwordsClickInfo.slot == 'Top', 1, 0))
+
+traffic_decoded <- traffic_decoded %>%
+  mutate(is_video_ad = ifelse(is.na(traffic_decoded$adwordsClickInfo.isVideoAd), 0, 1))
+
+
+# Retrieve lookup tables for encodings
+gcl_id_lookup <- read.csv('gcl_id_lookup.csv', stringsAsFactors=FALSE)
+ad_net_type_lookup <- read.csv('ad_net_type_lookup.csv', stringsAsFactors=FALSE)
+ad_content_lookup <- read.csv('ad_content_lookup.csv', stringsAsFactors=FALSE)
+referral_path_lookup <- read.csv('referral_path_lookup.csv', stringsAsFactors=FALSE)
+keyword_lookup <- read.csv('keyword_lookup.csv', stringsAsFactors=FALSE)
+medium_lookup <- read.csv('medium_lookup.csv',stringsAsFactors=FALSE)
+source_lookup <- read.csv('source_lookup.csv', stringsAsFactors=FALSE)
+campaign_lookup <- read.csv('campaign_lookup.csv', stringsAsFactors=FALSE)
+
+# One keyword oddly caused errors. Manually remove for now.
+keyword_lookup <- keyword_lookup %>% tbl_df() %>% filter(keyword != 'yiutube')
+
+traffic_decoded <- traffic_decoded %>% 
+  left_join(gcl_id_lookup) %>% 
+  left_join(ad_net_type_lookup) %>% 
+  left_join(ad_content_lookup) %>% 
+  left_join(referral_path_lookup) %>% 
+  left_join(keyword_lookup) %>% 
+  left_join(medium_lookup) %>% 
+  left_join(source_lookup) %>% 
+  left_join(campaign_lookup) %>%
+  select(isTrueDirect, adwords_page:campaign_id)
+
+clean_tbl <- clean_tbl %>% cbind(traffic_decoded)
+rm(traffic_decoded)
+
+# Number of visits
+temp <- train_tbl %>% group_by(visitId) %>% summarize(num_visits = n())
+temp2 <- train_tbl %>% select(key, visitId)
+temp2 <- temp2 %>% inner_join(temp) %>% select(-visitId)
+clean_tbl <- clean_tbl %>% left_join(temp2)
+rm(temp, temp2)
+
+# Finally join in the full visitor ID
+temp <- train_tbl %>% select(key, fullVisitorId)
+clean_tbl <- clean_tbl %>% inner_join(temp)
+rm(temp)
+
+# Finished cleaning. Now must aggregate by user.
+aggregated <- tbl_df(clean_tbl)
+aggregated <- aggregated %>% 
+  mutate(fullVisitorId = as.character(fullVisitorId)) %>%
+  group_by(fullVisitorId) %>%
+  select(-key)
+
+aggregated <- aggregated %>% 
+  summarize(total_rows = n(),
+            chan_affiliates = sum(chan_affiliates),
+            chan_direct = sum(chan_direct),
+            chan_display = sum(chan_display),
+            chan_organic = sum(chan_organic),
+            chan_paid = sum(chan_paid),
+            chan_referral = sum(chan_referral),
+            chan_social = sum(chan_social),
+            chan_other = sum(chan_other),
+            min_year = min(year),
+            max_year = max(year),
+            avg_year = mean(year),
+            med_year = median(year),
+            min_month = min(month),
+            max_month = max(month),
+            avg_month = mean(month),
+            med_month = median(month),
+            min_day = min(day),
+            max_day = max(day),
+            avg_day = mean(day),
+            med_day = median(day),
+            min_date = min(date),
+            max_date = max(date),
+            avg_date = mean(date),
+            med_date = median(date),
+            is_mobile = sum(isMobile),
+            b_chrome = sum(b_chrome),
+            b_safari = sum(b_safari),
+            b_firefox = sum(b_firefox),
+            b_ie = sum(b_ie),
+            b_edge = sum(b_edge),
+            b_android = sum(b_android),
+            b_safari_app = sum(b_safari_app),
+            b_opera_mini = sum(b_opera_mini),
+            b_uc = sum(b_uc),
+            b_other = sum(b_other),
+            os_windows = sum(os_windows),
+            os_mac = sum(os_mac),
+            os_android = sum(os_android),
+            os_ios = sum(os_ios),
+            os_linux = sum(os_linux),
+            os_chrome = sum(os_chrome),
+            os_not_set = sum(os_not_set),
+            os_windows_phone = sum(os_windows_phone),
+            os_samsung = sum(os_samsung),
+            os_blackberry = sum(os_blackberry),
+            os_other = sum(os_other),
+            dc_desktop = sum(dc_desktop),
+            dc_mobile = sum(dc_mobile),
+            dc_tablet = sum(dc_tablet),
+            continent_id = median(continent_id), # Assumptions, probably poor.
+            sub_continent_id = median(sub_continent_id),
+            country_id = median(country_id),
+            region_id = median(region_id),
+            metro_id = median(metro_id),
+            city_id = median(city_id),
+            domain_id = median(domain_id),
+            parsed_domain_id = median(parsed_domain_id),
+            total_sessions = sum(total_sessions, na.rm = T),
+            visits = sum(visits, na.rm = T),
+            hits = sum(hits, na.rm = T),
+            pageviews = sum(pageviews, na.rm = T),
+            bounces = sum(bounces, na.rm = T),
+            newVisits = sum(newVisits, na.rm = T),
+            isTrueDirect = sum(isTrueDirect, na.rm = T),
+            adwords_page = median(as.integer(adwords_page), na.rm = T),
+            traffic_rhs = sum(traffic_rhs, na.rm = T),
+            traffic_top = sum(traffic_top, na.rm = T),
+            is_video_ad = sum(is_video_ad, na.rm = T),
+            gclId_id = median(gclId_id, na.rm = T),
+            ad_net_type_id = median(ad_net_type_id, na.rm = T),
+            ad_content_id = median(ad_content_id, na.rm = T),
+            ref_path_id = median(ref_path_id, na.rm = T),
+            keyword_id = median(keyword_id, na.rm = T),
+            medium_id = median(medium_id, na.rm = T),
+            source_id = median(source_id, na.rm = T),
+            campaign_id = median(campaign_id, na.rm = T),
+            num_visits = sum(num_visits, na.rm = T),
+            transactionRevenueRaw = sum(transactionRevenue, na.rm = T),
+            transactionRevenue = log(transactionRevenue)
+            ) %>%
+  select(-transactionRevenueRaw)
+
+
+
+# Implement LightGBM
+
+# Split into test/train
+set.seed(385)
+smp_size <- floor(0.8 * nrow(aggregated))
+train_ind <- sample(seq_len(nrow(aggregated)), size = smp_size)
+train <- aggregated[train_ind,]
+test <- aggregated[-train_ind,]
+
+# Separate data frames for inputs and labels
+train_inputs <- as.matrix(cv_train %>% select(-c(fullVisitorId,transactionRevenue)))
+train_labels <- as.matrix(cv_train %>% select(transactionRevenue))
+valid_inputs <- as.matrix(cv_valid %>% select(-c(fullVisitorId,transactionRevenue)))
+valid_labels <- as.matrix(cv_valid %>% select(transactionRevenue))
+
+dtrain <- lgb.Dataset(data = train_inputs, label = train_labels)
+dtest <- lgb.Dataset.create.valid(dtrain, data = valid_inputs, label = valid_labels)
+valids <- list(test = dtest)
+
+params <- list(objective = 'regression', metric = 'rmse')
+model <- lgb.train(params,
+                   dtrain,
+                   1000,
+                   valids,
+                   learning_rate = 0.01,
+                   early_stopping_rounds = 500)
+
+# Predict on the validation set
+predicted <- predict(model, valid_inputs)
+
+rmse(valid_labels, predicted)
