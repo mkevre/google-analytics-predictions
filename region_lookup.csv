@@ -1,0 +1,377 @@
+"region","region_id"
+"(not set)",1
+"Abruzzo",2
+"Abu Dhabi",3
+"Adana",4
+"Aichi Prefecture",5
+"Al Madinah Province",6
+"Alba County",7
+"Alberta",8
+"Alexandria Governorate",9
+"Algiers Province",10
+"Almaty Province",11
+"Amman Governorate",12
+"Andalusia",13
+"Ankara",14
+"Antalya",15
+"Antioquia",16
+"Aquitaine",17
+"Aragon",18
+"Arequipa",19
+"Arizona",20
+"Assam",21
+"Asturias",22
+"Atlantico",23
+"Attica",24
+"Auckland",25
+"Aust-Agder",26
+"Auvergne-Rhone-Alpes",27
+"Aydin Province",28
+"Ba Ria - Vung Tau",29
+"Bac Giang",30
+"Bac Ninh Province",31
+"Baden-Wurttemberg",32
+"Baja California",33
+"Bangkok",34
+"Basque Country",35
+"Bavaria",36
+"Beijing",37
+"Beirut Governorate",38
+"Berlin",39
+"Bihar",40
+"Bihor County",41
+"Binh Dinh Province",42
+"Binh Phuoc",43
+"Binh Thuan Province",44
+"Bogota",45
+"Bratislava Region",46
+"Bremen",47
+"Brest Region",48
+"British Columbia",49
+"Brittany",50
+"Brussels",51
+"Bucharest",52
+"Budapest",53
+"Buenos Aires",54
+"Buenos Aires Province",55
+"Bursa",56
+"Cairo Governorate",57
+"California",58
+"Campania",59
+"Can Tho",60
+"Capital District",61
+"Capital Region of Denmark",62
+"Castile-La Mancha",63
+"Catalonia",64
+"Center District",65
+"Central Denmark Region",66
+"Central Java",67
+"Central Macedonia",68
+"Central Visayas",69
+"Chandigarh",70
+"Changhua County",71
+"Chiang Mai",72
+"Chiang Rai",73
+"Chiayi County",74
+"Chon Buri",75
+"City of Zagreb",76
+"Cluj County",77
+"Colorado",78
+"Community of Madrid",79
+"Connecticut",80
+"Cordoba",81
+"County Cork",82
+"County Dublin",83
+"County Louth",84
+"County Wicklow",85
+"Cusco",86
+"Da Nang",87
+"Daegu",88
+"Davao Region",89
+"Delhi",90
+"Dhaka Division",91
+"District of Columbia",92
+"Djak Lak Province",93
+"Djong Thap Province",94
+"Dnipropetrovsk Oblast",95
+"Doha",96
+"Dong Nai",97
+"Dubai",98
+"Dublin City",99
+"East Java",100
+"Emilia-Romagna",101
+"England",102
+"Erzurum",103
+"Eskisehir Province",104
+"Faro District",105
+"Federal District",106
+"Federal Territory of Kuala Lumpur",107
+"Flanders",108
+"Florida",109
+"Fukui Prefecture",110
+"Gauteng",111
+"Gaziantep",112
+"Gelderland",113
+"Geneva",114
+"Georgia",115
+"Gia Lai Province",116
+"Grand Casablanca",117
+"Grand Est",118
+"Greater Poland Voivodeship",119
+"Groningen",120
+"Guanajuato",121
+"Guangdong",122
+"Guatemala Department",123
+"Gujarat",124
+"Gyeonggi-do",125
+"Ha Tinh Province",126
+"Hai Duong",127
+"Haiphong",128
+"Hamburg",129
+"Hanoi",130
+"Harju County",131
+"Haryana",132
+"Hauts-de-France",133
+"Hawaii",134
+"Hesse",135
+"Ho Chi Minh",136
+"Ho Chi Minh City",137
+"Hokkaido",138
+"Hradec Kralove Region",139
+"Hsinchu County",140
+"Hunedoara County",141
+"Hung Yen Province",142
+"Iasi County",143
+"Idaho",144
+"Ile-de-France",145
+"Illinois",146
+"Indiana",147
+"Iowa",148
+"Islamabad Capital Territory",149
+"Istanbul",150
+"Izmir",151
+"Jakarta",152
+"Jalisco",153
+"Johor",154
+"Kanagawa Prefecture",155
+"Kansas",156
+"Kaohsiung City",157
+"Karnataka",158
+"Kayseri Province",159
+"Kentucky",160
+"Kerala",161
+"Khanh Hoa Province",162
+"Kharkiv Oblast",163
+"Khon Kaen",164
+"Kien Giang",165
+"Konya",166
+"Kosice Region",167
+"Kumamoto Prefecture",168
+"KwaZulu-Natal",169
+"Kyiv city",170
+"La Libertad",171
+"Lagos",172
+"Lam Djong",173
+"Lampang",174
+"Lazio",175
+"Leiria District",176
+"Lesser Poland Voivodeship",177
+"Lima Region",178
+"Lisbon",179
+"Ljubljana",180
+"Lombardy",181
+"Lopburi",182
+"Louisiana",183
+"Lower Austria",184
+"Lower Silesian Voivodeship",185
+"Lviv Oblast",186
+"Madhya Pradesh",187
+"Magdalena",188
+"Maha Sarakham",189
+"Maharashtra",190
+"Makkah Province",191
+"Manitoba",192
+"Maryland",193
+"Masovian Voivodeship",194
+"Massachusetts",195
+"Mersin Province",196
+"Metro Manila",197
+"Mexico City",198
+"Miaoli County",199
+"Michigan",200
+"Minnesota",201
+"Minsk Region",202
+"Missouri",203
+"Miyazaki Prefecture",204
+"Montana",205
+"Moravian-Silesian Region",206
+"Moscow",207
+"Mures County",208
+"Nagano Prefecture",209
+"Nairobi County",210
+"Nakhon Pathom",211
+"Nakhon Ratchasima",212
+"Nakhon Sawan",213
+"Nakhon Si Thammarat",214
+"Nam Dinh",215
+"Nebraska",216
+"Nevada",217
+"New Jersey",218
+"New South Wales",219
+"New Taipei City",220
+"New York",221
+"Newfoundland and Labrador",222
+"Nghe An",223
+"Nord-Pas-de-Calais",224
+"North Brabant",225
+"North Carolina",226
+"North Denmark Region",227
+"North Holland",228
+"North Rhine-Westphalia",229
+"North Sumatra",230
+"not available in demo dataset",231
+"Nouvelle-Aquitaine",232
+"Nuevo Leon",233
+"Odessa Oblast",234
+"Odisha",235
+"Ohio",236
+"Okinawa Prefecture",237
+"Oklahoma",238
+"Olomouc Region",239
+"Ontario",240
+"Oran Province",241
+"Oregon",242
+"Osaka Prefecture",243
+"Osijek-Baranja County",244
+"Oslo",245
+"Overijssel",246
+"Panama",247
+"Pathum Thani",248
+"Pays de la Loire",249
+"Pennsylvania",250
+"Perak",251
+"Phitsanulok",252
+"Phnom Penh",253
+"Phra Nakhon Si Ayutthaya",254
+"Phu Tho Province",255
+"Phuket",256
+"Pichincha",257
+"Piedmont",258
+"Pingtung County",259
+"Piura",260
+"Podkarpackie Voivodeship",261
+"Prachuap Khiri Khan",262
+"Prague",263
+"Primorsky Krai",264
+"Prince Edward Island",265
+"Provence-Alpes-Cote d'Azur",266
+"Puebla",267
+"Punjab",268
+"Quang Nam Province",269
+"Quang Ngai",270
+"Quebec",271
+"Queensland",272
+"Queretaro",273
+"Quintana Roo",274
+"Rajasthan",275
+"Rayong",276
+"Region Syddanmark",277
+"Region Zealand",278
+"Rhone-Alpes",279
+"Riga",280
+"Riyadh Province",281
+"Saint Petersburg",282
+"Sakon Nakhon",283
+"Salzburg",284
+"Samsun",285
+"San Salvador Department",286
+"Santa Fe Province",287
+"Santiago Metropolitan Region",288
+"Saraburi",289
+"Sardinia",290
+"Scotland",291
+"Selangor",292
+"Seoul",293
+"Shanghai",294
+"Sharjah",295
+"Sibiu",296
+"Silesian Voivodeship",297
+"Sinaloa",298
+"Sindh",299
+"Sofia City Province",300
+"Songkhla",301
+"Sonora",302
+"South Australia",303
+"South Carolina",304
+"South Holland",305
+"South Moravian Region",306
+"South Sulawesi",307
+"Special Region of Yogyakarta",308
+"State of Amazonas",309
+"State of Bahia",310
+"State of Ceara",311
+"State of Espirito Santo",312
+"State of Goias",313
+"State of Mato Grosso",314
+"State of Mexico",315
+"State of Minas Gerais",316
+"State of Parana",317
+"State of Pernambuco",318
+"State of Rio de Janeiro",319
+"State of Rio Grande do Sul",320
+"State of Santa Catarina",321
+"State of Sao Paulo",322
+"Stockholm County",323
+"Surat Thani",324
+"Taichung City",325
+"Tainan City",326
+"Taipei City",327
+"Tamil Nadu",328
+"Taoyuan County",329
+"Tay Ninh Province",330
+"Tbilisi",331
+"Tel Aviv District",332
+"Telangana",333
+"Tennessee",334
+"Texas",335
+"Thai Binh",336
+"Thai Nguyen",337
+"Thanh Hoa",338
+"Thua Thien Hue",339
+"Tien Giang",340
+"Timis County",341
+"Tokyo",342
+"Trabzon",343
+"Tuscany",344
+"Ubon Ratchathani",345
+"Udon Thani",346
+"Usti nad Labem Region",347
+"Utah",348
+"Utrecht",349
+"Uttar Pradesh",350
+"Valencian Community",351
+"Valle del Cauca",352
+"Valparaiso Region",353
+"Vastra Gotaland County",354
+"Vaud",355
+"Veneto",356
+"Victoria",357
+"Vienna",358
+"Vilnius County",359
+"Vinh Phuc Province",360
+"Virginia",361
+"Vladimir Oblast",362
+"Wales",363
+"Washington",364
+"Wellington",365
+"West Bengal",366
+"West Java",367
+"West Pomeranian Voivodeship",368
+"West Virginia",369
+"Western Australia",370
+"Western Cape",371
+"Western Province",372
+"Wisconsin",373
+"Zhejiang",374
+"Zulia",375
+"Zurich",376
