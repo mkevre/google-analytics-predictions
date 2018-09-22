@@ -1,0 +1,312 @@
+library(dplyr)
+
+clean <- function(data) {
+  
+  data_tbl <- tbl_df(data)
+  # There is no primary key. Let's create one.
+  data_tbl$key <- seq.int(nrow(data_tbl))
+  
+  # Create a clean version where we'll store our cleaned variables
+  clean_tbl <- data_tbl %>% select(key)
+  
+  # Explore and clean the dataset column by column
+  
+  # channelGrouping
+  print('channel grouping')
+  temp <- data_tbl %>% 
+    mutate(chan_affiliates = ifelse(channelGrouping == 'Affiliates', 1, 0),
+           chan_direct = ifelse(channelGrouping == 'Direct', 1, 0),
+           chan_display = ifelse(channelGrouping == 'Display', 1, 0),
+           chan_organic = ifelse(channelGrouping == 'Organic Search', 1, 0),
+           chan_paid = ifelse(channelGrouping == 'Paid Search', 1, 0),
+           chan_referral = ifelse(channelGrouping == 'Referral', 1, 0),
+           chan_social = ifelse(channelGrouping == 'Social', 1, 0),
+           chan_other = ifelse(channelGrouping == '(Other)', 1, 0)) %>%
+    select(key, chan_affiliates:chan_other)
+  clean_tbl <- clean_tbl %>% left_join(temp)
+  rm(temp)
+  
+  print('date')
+  # date
+  temp <- data_tbl %>%
+    mutate(year = as.integer(substr(as.character(date), 0, 4)),
+           month = as.integer(substr(as.character(date), 5, 6)),
+           day = as.integer(substr(as.character(date), 7, 8))
+    ) %>%
+    select(key, date, year, month, day)
+  clean_tbl <- clean_tbl %>% left_join(temp)
+  rm(temp)
+  
+  print('device')
+  # device
+  library(jsonlite)
+  
+  device_decoded <- paste('[', paste(data_tbl$device, collapse = ','), ']') %>% fromJSON(flatten = T)
+  device_decoded$browser <- as.factor(device_decoded$browser)
+  device_decoded$operatingSystem <- as.factor(device_decoded$operatingSystem) 
+  device_decoded$isMobile <- as.integer(device_decoded$isMobile) # Originally TRUE/FALSE
+  device_decoded$deviceCategory <- as.factor(device_decoded$deviceCategory)
+  device_decoded <- tbl_df(device_decoded) %>%
+    select(browser, operatingSystem, isMobile, deviceCategory)
+  
+  device_decoded <- device_decoded %>%
+    mutate(
+      # Browsers
+      b_chrome = ifelse(as.character(browser) == 'Chrome', 1, 0),
+      b_safari = ifelse(as.character(browser) == 'Safari', 1, 0),
+      b_firefox = ifelse(as.character(browser) == 'Firefox', 1, 0),
+      b_ie = ifelse(as.character(browser) == 'Internet Explorer', 1, 0),
+      b_edge = ifelse(as.character(browser) == 'Edge', 1, 0),
+      b_android = ifelse(as.character(browser) == 'Android Webview', 1, 0),
+      b_safari_app = ifelse(as.character(browser) == 'Safari (in-app)', 1, 0),
+      b_opera_mini = ifelse(as.character(browser) == 'Opera Mini', 1, 0),
+      b_uc = ifelse(as.character(browser) == 'UC Browser', 1, 0),
+      b_other = ifelse(sum(b_chrome, b_safari, b_firefox, b_ie, b_edge, b_android, b_safari_app, b_opera_mini, b_uc) == 0, 1, 0),
+      # Operating Systems
+      os_windows = ifelse(as.character(operatingSystem) == 'Windows', 1, 0),  
+      os_mac = ifelse(as.character(operatingSystem) == 'Macintosh', 1, 0),  
+      os_android = ifelse(as.character(operatingSystem) == 'Android', 1, 0),  
+      os_ios = ifelse(as.character(operatingSystem) == 'iOS', 1, 0),  
+      os_linux = ifelse(as.character(operatingSystem) == 'Linux', 1, 0),  
+      os_chrome = ifelse(as.character(operatingSystem) == 'Chrome OS', 1, 0),  
+      os_not_set = ifelse(as.character(operatingSystem) == '(not set)', 1, 0),  
+      os_windows_phone = ifelse(as.character(operatingSystem) == 'Windows Phone', 1, 0),  
+      os_samsung = ifelse(as.character(operatingSystem) == 'Samsung', 1, 0),  
+      os_blackberry = ifelse(as.character(operatingSystem) == 'BlackBerry', 1, 0),  
+      os_other = ifelse(sum(os_windows, os_mac, os_android, os_ios, os_linux, os_chrome, os_not_set, os_windows_phone, os_samsung, os_blackberry) == 0, 1, 0),
+      # Device Category
+      dc_desktop = ifelse(as.character(deviceCategory) == 'desktop', 1, 0),
+      dc_mobile = ifelse(as.character(deviceCategory) == 'mobile', 1, 0),
+      dc_tablet = ifelse(as.character(deviceCategory) == 'tablet', 1, 0)
+    ) %>%
+    select(-c(browser, operatingSystem, deviceCategory))
+  
+  clean_tbl <- clean_tbl %>% cbind(device_decoded)
+  rm(device_decoded)
+  
+  print('visitor id')
+  # Visitor ID (category on which we will need to aggregate)
+  temp <- data_tbl %>%
+    select(key, fullVisitorId) %>%
+    mutate(fullVisitorId = as.character(fullVisitorId))
+  clean_tbl %>% left_join(temp)
+  rm(temp)
+  
+  # geoNetwork
+  geo_decoded <- paste('[', paste(data_tbl$geoNetwork, collapse = ','), ']') %>% fromJSON(flatten = T)
+  geo_decoded <- tbl_df(geo_decoded)
+  # Create a new feature for top level domain
+  geo_decoded$parsed_domain <- gsub('^.*\\.','', geo_decoded$networkDomain)
+  
+  # Retrieve lookup tables for encodings
+  continent_lookup <- read.csv('continent_lookup.csv', stringsAsFactors=FALSE)
+  sub_continent_lookup <- read.csv('sub_continent_lookup.csv', stringsAsFactors=FALSE)
+  country_lookup <- read.csv('country_lookup.csv', stringsAsFactors=FALSE)
+  region_lookup <- read.csv('region_lookup.csv', stringsAsFactors=FALSE)
+  metro_lookup <- read.csv('metro_lookup.csv', stringsAsFactors=FALSE)
+  city_lookup <- read.csv('city_lookup.csv',stringsAsFactors=FALSE)
+  domain_lookup <- read.csv('domain_lookup.csv', stringsAsFactors=FALSE)
+  parsed_domain_lookup <- read.csv('parsed_domain_lookup.csv', stringsAsFactors=FALSE)
+  
+  geo_decoded <- geo_decoded %>% 
+    left_join(continent_lookup) %>% 
+    left_join(sub_continent_lookup) %>% 
+    left_join(country_lookup) %>% 
+    left_join(region_lookup) %>% 
+    left_join(metro_lookup) %>% 
+    left_join(city_lookup) %>% 
+    left_join(domain_lookup) %>% 
+    left_join(parsed_domain_lookup) %>%
+    select(continent_id:parsed_domain_id)
+  
+  clean_tbl <- clean_tbl %>% cbind(geo_decoded)
+  rm(geo_decoded)
+  
+  # sessionId
+  temp <- data_tbl %>%
+    group_by(sessionId) %>%
+    summarize(total_sessions = n()) %>%
+    arrange(desc(total_sessions))
+  temp2 <- data_tbl %>%
+    select(key, sessionId) %>%
+    left_join(temp) %>%
+    select(-sessionId)
+  clean_tbl <- clean_tbl %>% left_join(temp2)
+  rm(temp, temp2)
+  
+  data_tbl %>% group_by(as.character(fullVisitorId)) %>% summarize(count = n()) %>% arrange(desc(count))
+  
+  # Social engagement type is not useful, only one value
+  
+  # totals
+  totals_decoded <- paste('[', paste(data_tbl$totals, collapse = ','), ']') %>% fromJSON(flatten = T)
+  totals_decoded <- tbl_df(totals_decoded)
+  clean_tbl <- clean_tbl %>% cbind(totals_decoded)
+  clean_tbl$visits <- as.numeric(clean_tbl$visits)
+  clean_tbl$hits <- as.numeric(clean_tbl$hits)
+  clean_tbl$pageviews <- as.numeric(clean_tbl$pageviews)
+  clean_tbl$bounces <- as.numeric(clean_tbl$bounces)
+  clean_tbl$newVisits <- as.numeric(clean_tbl$newVisits)
+  
+  if('transactionRevenue' %in% names(clean_tbl)) {  
+    clean_tbl$transactionRevenue <- as.numeric(clean_tbl$transactionRevenue)
+  } else {
+    clean_tbl$transactionRevenue <- 0
+  }
+  
+  # Traffic Source
+  traffic_decoded <- paste('[', paste(data_tbl$trafficSource, collapse = ','), ']') %>% fromJSON(flatten = T)
+  traffic_decoded <- tbl_df(traffic_decoded)
+  
+  traffic_decoded <- traffic_decoded %>% 
+    mutate(isTrueDirect = ifelse(is.na(isTrueDirect), 0, 1))
+  
+  # adwordsClickInfo.criteriaParameters is useless
+  
+  traffic_decoded$adwords_page <- traffic_decoded$adwordsClickInfo.page
+  traffic_decoded <- traffic_decoded %>%
+    mutate(traffic_rhs = ifelse(traffic_decoded$adwordsClickInfo.slot == 'RHS', 1, 0),
+           traffic_top = ifelse(traffic_decoded$adwordsClickInfo.slot == 'Top', 1, 0))
+  
+  traffic_decoded <- traffic_decoded %>%
+    mutate(is_video_ad = ifelse(is.na(traffic_decoded$adwordsClickInfo.isVideoAd), 0, 1))
+  
+  
+  # Retrieve lookup tables for encodings
+  gcl_id_lookup <- read.csv('gcl_id_lookup.csv', stringsAsFactors=FALSE)
+  ad_net_type_lookup <- read.csv('ad_net_type_lookup.csv', stringsAsFactors=FALSE)
+  ad_content_lookup <- read.csv('ad_content_lookup.csv', stringsAsFactors=FALSE)
+  referral_path_lookup <- read.csv('referral_path_lookup.csv', stringsAsFactors=FALSE)
+  keyword_lookup <- read.csv('keyword_lookup.csv', stringsAsFactors=FALSE)
+  medium_lookup <- read.csv('medium_lookup.csv',stringsAsFactors=FALSE)
+  source_lookup <- read.csv('source_lookup.csv', stringsAsFactors=FALSE)
+  campaign_lookup <- read.csv('campaign_lookup.csv', stringsAsFactors=FALSE)
+  
+  # One keyword oddly caused errors. Manually remove for now.
+  keyword_lookup <- keyword_lookup %>% tbl_df() %>% filter(keyword != 'yiutube')
+  
+  traffic_decoded <- traffic_decoded %>% 
+    left_join(gcl_id_lookup) %>% 
+    left_join(ad_net_type_lookup) %>% 
+    left_join(ad_content_lookup) %>% 
+    left_join(referral_path_lookup) %>% 
+    left_join(keyword_lookup) %>% 
+    left_join(medium_lookup) %>% 
+    left_join(source_lookup) %>% 
+    left_join(campaign_lookup) %>%
+    select(isTrueDirect, adwords_page:campaign_id)
+  
+  clean_tbl <- clean_tbl %>% cbind(traffic_decoded)
+  rm(traffic_decoded)
+  
+  # Number of visits
+  temp <- data_tbl %>% group_by(visitId) %>% summarize(num_visits = n())
+  temp2 <- data_tbl %>% select(key, visitId)
+  temp2 <- temp2 %>% left_join(temp) %>% select(-visitId)
+  clean_tbl <- clean_tbl %>% left_join(temp2)
+  rm(temp, temp2)
+  
+  # Finally join in the full visitor ID
+  temp <- data_tbl %>% select(key, fullVisitorId)
+  clean_tbl <- clean_tbl %>% left_join(temp)
+  rm(temp)
+  
+  # Finished cleaning. Now must aggregate by user.
+  aggregated <- tbl_df(clean_tbl)
+  aggregated <- aggregated %>% 
+    mutate(fullVisitorId = as.character(fullVisitorId)) %>%
+    group_by(fullVisitorId) %>%
+    select(-key)
+  
+  aggregated <- aggregated %>% 
+    summarize(total_rows = n(),
+              chan_affiliates = sum(chan_affiliates),
+              chan_direct = sum(chan_direct),
+              chan_display = sum(chan_display),
+              chan_organic = sum(chan_organic),
+              chan_paid = sum(chan_paid),
+              chan_referral = sum(chan_referral),
+              chan_social = sum(chan_social),
+              chan_other = sum(chan_other),
+              min_year = min(year),
+              max_year = max(year),
+              avg_year = mean(year),
+              med_year = median(year),
+              min_month = min(month),
+              max_month = max(month),
+              avg_month = mean(month),
+              med_month = median(month),
+              min_day = min(day),
+              max_day = max(day),
+              avg_day = mean(day),
+              med_day = median(day),
+              min_date = min(date),
+              max_date = max(date),
+              avg_date = mean(date),
+              med_date = median(date),
+              is_mobile = sum(isMobile),
+              b_chrome = sum(b_chrome),
+              b_safari = sum(b_safari),
+              b_firefox = sum(b_firefox),
+              b_ie = sum(b_ie),
+              b_edge = sum(b_edge),
+              b_android = sum(b_android),
+              b_safari_app = sum(b_safari_app),
+              b_opera_mini = sum(b_opera_mini),
+              b_uc = sum(b_uc),
+              b_other = sum(b_other),
+              os_windows = sum(os_windows),
+              os_mac = sum(os_mac),
+              os_android = sum(os_android),
+              os_ios = sum(os_ios),
+              os_linux = sum(os_linux),
+              os_chrome = sum(os_chrome),
+              os_not_set = sum(os_not_set),
+              os_windows_phone = sum(os_windows_phone),
+              os_samsung = sum(os_samsung),
+              os_blackberry = sum(os_blackberry),
+              os_other = sum(os_other),
+              dc_desktop = sum(dc_desktop),
+              dc_mobile = sum(dc_mobile),
+              dc_tablet = sum(dc_tablet),
+              continent_id = median(continent_id), # Assumptions, probably poor.
+              sub_continent_id = median(sub_continent_id),
+              country_id = median(country_id),
+              region_id = median(region_id),
+              metro_id = median(metro_id),
+              city_id = median(city_id),
+              domain_id = median(domain_id),
+              parsed_domain_id = median(parsed_domain_id),
+              total_sessions = sum(total_sessions, na.rm = T),
+              visits = sum(visits, na.rm = T),
+              hits = sum(hits, na.rm = T),
+              pageviews = sum(pageviews, na.rm = T),
+              bounces = sum(bounces, na.rm = T),
+              newVisits = sum(newVisits, na.rm = T),
+              isTrueDirect = sum(isTrueDirect, na.rm = T),
+              adwords_page = median(as.integer(adwords_page), na.rm = T),
+              traffic_rhs = sum(traffic_rhs, na.rm = T),
+              traffic_top = sum(traffic_top, na.rm = T),
+              is_video_ad = sum(is_video_ad, na.rm = T),
+              gclId_id = median(gclId_id, na.rm = T),
+              ad_net_type_id = median(ad_net_type_id, na.rm = T),
+              ad_content_id = median(ad_content_id, na.rm = T),
+              ref_path_id = median(ref_path_id, na.rm = T),
+              keyword_id = median(keyword_id, na.rm = T),
+              medium_id = median(medium_id, na.rm = T),
+              source_id = median(source_id, na.rm = T),
+              campaign_id = median(campaign_id, na.rm = T),
+              num_visits = sum(num_visits, na.rm = T),
+              transactionRevenueRaw = sum(transactionRevenue, na.rm = T),
+              transactionRevenue = ifelse(transactionRevenueRaw == 0, 0, log(transactionRevenueRaw))
+    ) %>%
+    select(-transactionRevenueRaw)
+  
+  rm(ad_content_lookup, ad_net_type_lookup, campaign_lookup, city_lookup,
+     continent_lookup, country_lookup, domain_lookup, gcl_id_lookup, keyword_lookup, 
+     medium_lookup, metro_lookup, parsed_domain_lookup, referral_path_lookup, region_lookup,
+     source_lookup, sub_continent_lookup, totals_decoded)
+  
+  aggregated
+  
+}
